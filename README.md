@@ -37,41 +37,7 @@ Not all MongoClient options are supported by the MongoClientURI.  For full custo
 
 (I created a package inside `controllers` named `mongoConfiguration`)
 
-The value should be the name of a class that extends from `it.unifi.cerm.playmorphia.MongoClientFactory` and provide at least an empty constructor or a constructor that takes a play Configuration.  For example:
-
-```java
-package controllers.mongoConfiguration;
-
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.typesafe.config.Config;
-import it.unifi.cerm.playmorphia.MongoClientFactory;
-
-import java.util.Arrays;
-import java.util.List;
-
-public class MyMongoClientFactory extends MongoClientFactory {
-
-    private Config config;
-
-    public MyMongoClientFactory(Config config) {
-        super(config);
-        this.config = config;
-    }
-
-    public MongoClient createClient() {
-        return new MongoClient(List.of(
-                new ServerAddress("localhost", 27017)
-        )
-        );
-    }
-
-    public String getDBName() {
-        return config.getString("playmorphia.database");
-    }
-
-}
-```
+The value should be the name of a class that extends from `it.unifi.cerm.playmorphia.MongoClientFactory` and provide at least an empty constructor or a constructor that takes a play Configuration.  
 
 Usage
 -----
