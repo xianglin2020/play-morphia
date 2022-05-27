@@ -1,13 +1,18 @@
 package it.unifi.cerm.playmorphia;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.typesafe.config.Config;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.pojo.PojoCodecProvider;
 
 import javax.inject.Inject;
 
 /**
- * Created by morelli on 21/02/19.
+ * @author morelli
+ * @date 21/02/19
  */
 public class MongoClientFactory {
 
@@ -19,7 +24,7 @@ public class MongoClientFactory {
     }
 
     @Inject
-    protected MongoClientFactory(Config config, boolean isTest) {
+    public MongoClientFactory(Config config, boolean isTest) {
         this.config = config;
         this.isTest = isTest;
     }
@@ -28,13 +33,26 @@ public class MongoClientFactory {
      * Creates and returns a new instance of a MongoClient.
      *
      * @return a new MongoClient
-     * @throws Exception
      */
-    public MongoClient createClient() throws Exception {
-        MongoClientURI uri = getClientURI();
-        MongoClient mongo = new MongoClient(uri);
+    public MongoClient createClient() {
+        final var pojoCodecProvider = PojoCodecProvider
+                .builder()
+                .automatic(true)
+                .build();
 
-        return mongo;
+        final var codecRegistries = CodecRegistries
+                .fromRegistries(MongoClientSettings.getDefaultCodecRegistry(),
+                        CodecRegistries.fromProviders(pojoCodecProvider));
+
+        var connectionString = getConnectionString();
+
+        var mongoClientSettings = MongoClientSettings
+                .builder()
+                .applyConnectionString(connectionString)
+                .codecRegistry(codecRegistries)
+                .build();
+
+        return MongoClients.create(mongoClientSettings);
     }
 
 
@@ -43,16 +61,15 @@ public class MongoClientFactory {
      *
      * @return The database name
      */
-    public String getDBName() {
-        return getClientURI().getDatabase();
+    public String getDbName() {
+        return getConnectionString().getDatabase();
     }
 
-    protected MongoClientURI getClientURI() {
-        MongoClientURI uri = new MongoClientURI(
+    protected ConnectionString getConnectionString() {
+        return new ConnectionString(
                 isTest
                         ? config.getString("playmorphia.test-uri")
                         : config.getString("playmorphia.uri"));
-        return uri;
     }
 
     /**

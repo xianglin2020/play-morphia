@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by morelli on 21/02/19.
+ * @author morelli
  */
 public class MorphiaModule extends play.inject.Module {
     public List<Binding<?>> bindings(Environment environment, Config config) {

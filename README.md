@@ -7,13 +7,14 @@ This is a Play 2.8.x Module for [Morphia](https://github.com/MorphiaOrg/morphia)
 Installation
 -----------
 
+*need java 11 because Morphia 2.0 requires Java 11 or greater.*
+
 Add the following to your build.sbt:
 
     libraryDependencies ++= Seq(
         guice,
-        "org.mongodb" % "mongo-java-driver" % "3.12.0",
-        "dev.morphia.morphia" % "core" % "1.5.8",
-        )
+        "dev.morphia.morphia" % "morphia-core" % "2.2.7",
+    )
 
 
 Create a `lib` folder in your project directory and copy play-morphia.jar inside.
@@ -47,8 +48,9 @@ import com.typesafe.config.Config;
 import it.unifi.cerm.playmorphia.MongoClientFactory;
 
 import java.util.Arrays;
+import java.util.List;
 
-public class MyMongoClientFactory  extends MongoClientFactory {
+public class MyMongoClientFactory extends MongoClientFactory {
 
     private Config config;
 
@@ -57,12 +59,12 @@ public class MyMongoClientFactory  extends MongoClientFactory {
         this.config = config;
     }
 
-    public MongoClient createClient() throws Exception {
-         return new MongoClient(Arrays.asList(
-                 new ServerAddress("localhost", 27017)
-                 )
-         );
-     }
+    public MongoClient createClient() {
+        return new MongoClient(List.of(
+                new ServerAddress("localhost", 27017)
+        )
+        );
+    }
 
     public String getDBName() {
         return config.getString("playmorphia.database");
@@ -139,8 +141,9 @@ Repository example:
 
 ```java
 package repositories;
-       
 
+
+import dev.morphia.query.experimental.filters.Filters;
 import it.unifi.cerm.playmorphia.PlayMorphia;
 import models.User;
 import org.bson.types.ObjectId;
@@ -157,13 +160,11 @@ public class UserRepository {
     }
 
     public User findById(String id) {
-        User user = morphia.
+        return morphia.
                 datastore().
-                createQuery(User.class).
-                field("_id").
-                equal(new ObjectId(id)).
-                get();
-        return user;
+                find(User.class).
+                filter(Filters.eq("_id", new ObjectId(id))).
+                first();
     }
 
     public void save(User u) {
@@ -188,12 +189,6 @@ public class UserController extends Controller {
     }
 }
 ```
-
-
-Contact
--------
-
-If you have a question or need some help you can just [open an issue](https://github.com/morellik/play-morphia/issues). 
 
 License
 -------
